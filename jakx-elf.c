@@ -2021,8 +2021,8 @@ struct rpc_data {
 typedef struct String_type String_type, *PString_type;
 
 struct String_type {
-    int length;
-    char buffer[1]; // Variable length buffer. Holds at least length + 1 bytes.
+    char *length;
+    char *buffer; // Variable length buffer. Holds at least length + 1 bytes.
 };
 
 typedef struct GoalProtoBlock GoalProtoBlock, *PGoalProtoBlock;
@@ -3063,11 +3063,11 @@ struct GoalStackArgs {
 
 typedef struct _IO_FILE FILE;
 
+typedef int __pid_t;
+
 typedef long __ssize_t;
 
 typedef __ssize_t ssize_t;
-
-typedef int __pid_t;
 
 typedef struct DisplayParams_TG DisplayParams_TG, *PDisplayParams_TG;
 
@@ -5826,6 +5826,8 @@ struct Elf32_Ehdr {
 typedef uint8_t **m_link_hdr2;
 
 typedef long intptr_t;
+
+typedef uint uintptr_t;
 
 typedef uint8_t **ptr;
 
@@ -170419,164 +170421,168 @@ void kqtoa_G(void)
 // WARNING: Removing unreachable block (ram,0x00267ed8)
 // WARNING: Removing unreachable block (ram,0x00267e38)
 // WARNING: Removing unreachable block (ram,0x00267edc)
+// WARNING: Unable to use type for symbol formatBufPtr_
 
-String_type * format_impl_jakx(int32_t *args)
+String_type * format_impl_jakx(uint64_t destination,char *format_string,int64_t args [1])
 
 {
-  byte bVar1;
-  float obj;
   char *buf;
   String_type *formattedString;
-  size_t sVar2;
+  size_t sVar1;
   char *str;
-  ulong args__;
-  int in_a1_lo;
-  byte *pbVar3;
+  char *formatBufPtr;
   s32 desired_len;
   s64 value;
   u64 base;
   char pad;
-  format_struct *argument_data;
-  uint uVar4;
-  int iVar5;
-  uint uVar6;
-  char *dest;
-  char *pbVar9;
-  byte *format_ptr1;
-  float *pfVar7;
-  float *pfVar8;
+  byte *cur_argument_data;
+  uint uVar2;
+  int ch;
+  uint uVar3;
+  char *end;
+  char *formatBufLookAhead;
+  byte *formatBufPtrCopy;
+  int64_t *curArg;
+  int64_t *nextArg;
   int unaff_s7_lo;
   undefined4 unaff_s7_hi;
+  int *piVar4;
   float pcVar5;
-  format_struct local_180 [4];
-  float local_30 [12];
-  int format_ptr2;
-  byte temp_format_value;
+  format_struct argument_data [4];
+  int64_t *arguments;
+  char char;
+  byte *formatBufPtr_;
+  int char_int;
+  byte cur_ch;
   
-  args__ = (ulong)(int)args;
   str = PrintPending;
   if (PrintPending == (char *)0x0) {
     str = PrintBufArea + 0x18;
   }
+  _arguments = args[0];
   buf = strend(str);
-  pbVar3 = (byte *)(in_a1_lo + 4);
-  uVar6 = *(uint *)(print_column + -1) >> 3;
+                    // I suspect that format_string is a string type which stores its length as a 4
+                    // byte integer, followed by the buffer of at least length + 1 bytes.
+  formatBufPtr = format_string + 4;
+  uVar3 = *(uint *)(print_column + -1) >> 3;
   PrintPending = buf;
-  dest = buf;
-  if ((uVar6 != 0) && (uVar4 = uVar6, buf[-1] == '\n')) {
-    for (; uVar4 != 0; uVar4 = uVar4 - 1) {
-      *dest = ' ';
-      dest = dest + 1;
+  end = buf;
+  if ((uVar3 != 0) && (uVar2 = uVar3, buf[-1] == '\n')) {
+    for (; uVar2 != 0; uVar2 = uVar2 - 1) {
+      *end = ' ';
+      end = end + 1;
     }
   }
-  pfVar7 = local_30;
-LAB_00267b8c:
-  while (temp_format_value = *pbVar3, temp_format_value != 0) {
-    if (temp_format_value == '~') {
-      local_180[0].data[1] = '\0';
-      local_180[3].data[0] = -1;
-      local_180[0].data[0] = -1;
-      local_180[1].data[0] = -1;
-      local_180[2].data[0] = -1;
-      argument_data = local_180;
-      format_ptr1 = pbVar3;
+  curArg = (int64_t *)&arguments;
+LOOP_START_LAB_00267b8c:
+  while (cur_ch = *formatBufPtr, cur_ch != 0) {
+    if (cur_ch == '~') {
+      argument_data[0].data[1] = '\0';
+      argument_data[3].data[0] = -1;
+      argument_data[0].data[0] = -1;
+      argument_data[1].data[0] = -1;
+      argument_data[2].data[0] = -1;
+      cur_argument_data = (byte *)argument_data;
+      formatBufPtrCopy = (byte *)formatBufPtr;
 LAB_00267bfc:
-      temp_format_value = format_ptr1[1];
-      format_ptr2 = (int)(char)temp_format_value;
-      if (format_ptr2 - L'0'U < 10) {
-        iVar5 = (uint)temp_format_value << 0x18;
+      char = formatBufPtrCopy[1];
+      char_int = (int)char;
+                    // Checking if indentation was specified?
+      if (char_int - L'0'U < 10) {
+        ch = (uint)(byte)char << 24;
       }
       else {
-        if (((format_ptr2 != L',') && (format_ptr2 != L'\'')) && (format_ptr2 != L'`')) {
-          if (*(byte *)argument_data != 0xff) goto LAB_00267c50;
-          if (format_ptr2 != L'-') {
-            iVar5 = (uint)temp_format_value << 0x18;
-            if (format_ptr2 == L'+') goto LAB_002682b0;
-            goto LAB_00267c50;
+        if (((char_int != L',') && (char_int != L'\'')) && (char_int != L'`')) {
+          if (*cur_argument_data != 0xff) goto CHECK_NEWLINE_FMT_LAB_00267C50;
+          if (char_int != L'-') {
+            ch = (uint)(byte)char << 24;
+            if (char_int == L'+') goto LAB_002682b0;
+            goto CHECK_NEWLINE_FMT_LAB_00267C50;
           }
         }
-        iVar5 = (uint)temp_format_value << 0x18;
+        ch = (uint)(byte)char << 24;
       }
 LAB_002682b0:
-      iVar5 = iVar5 >> 0x18;
-      if (iVar5 == L',') {
-        argument_data = (format_struct *)((int)argument_data + 0x40);
-        format_ptr1 = format_ptr1 + 1;
+                    // ch should be equal to char and char_int at this point
+      ch = ch >> 24;
+      if (ch == L',') {
+        cur_argument_data = cur_argument_data + 0x40;
+        formatBufPtrCopy = formatBufPtrCopy + 1;
       }
-      else if (iVar5 < L'-') {
-        if (iVar5 == L'\'') {
-          *(byte *)argument_data = format_ptr1[2];
-          format_ptr1 = format_ptr1 + 2;
+      else if (ch < L'-') {
+        if (ch == L'\'') {
+          *cur_argument_data = formatBufPtrCopy[2];
+          formatBufPtrCopy = formatBufPtrCopy + 2;
         }
-        else if (iVar5 == L'+') {
-          format_ptr1 = format_ptr1 + 1;
+        else if (ch == L'+') {
+          formatBufPtrCopy = formatBufPtrCopy + 1;
         }
         else {
-          bVar1 = *(byte *)argument_data;
+          cur_ch = *cur_argument_data;
 LAB_002682dc:
-          if (bVar1 == 0xff) {
-            *(byte *)argument_data = 0;
+          if (cur_ch == 0xff) {
+            *cur_argument_data = 0;
           }
-          format_ptr1 = format_ptr1 + 1;
-          *(byte *)argument_data = (temp_format_value + *(byte *)argument_data * '\n') - '0';
+          formatBufPtrCopy = formatBufPtrCopy + 1;
+          *cur_argument_data = (char + *cur_argument_data * '\n') - '0';
         }
       }
-      else if (iVar5 == L'-') {
-        format_ptr1 = format_ptr1 + 1;
-        *(byte *)((int)argument_data + 1) = 1;
+      else if (ch == L'-') {
+        formatBufPtrCopy = formatBufPtrCopy + 1;
+        cur_argument_data[1] = 1;
       }
       else {
-        if (iVar5 != L'`') {
-          bVar1 = *(byte *)argument_data;
+        if (ch != L'`') {
+          cur_ch = *cur_argument_data;
           goto LAB_002682dc;
         }
-        format_ptr2 = 0;
-        temp_format_value = format_ptr1[2];
-        while (format_ptr1 = format_ptr1 + 1, temp_format_value != '`') {
-          *(byte *)((int)argument_data + format_ptr2) = temp_format_value;
-          format_ptr2 = format_ptr2 + 1;
-          temp_format_value = format_ptr1[2];
+        char_int = 0;
+        cur_ch = formatBufPtrCopy[2];
+        while (formatBufPtrCopy = formatBufPtrCopy + 1, cur_ch != '`') {
+          cur_argument_data[char_int] = cur_ch;
+          char_int = char_int + 1;
+          cur_ch = formatBufPtrCopy[2];
         }
-        format_ptr1 = format_ptr1 + 1;
-        *(byte *)((int)argument_data + format_ptr2) = 0;
+        formatBufPtrCopy = formatBufPtrCopy + 1;
+        cur_argument_data[char_int] = 0;
       }
       goto LAB_00267bfc;
     }
-    *dest = temp_format_value;
-    dest = dest + 1;
-    pbVar9 = (char *)pbVar3;
-    if (2 < *pbVar3 - 1) goto LAB_00267bd8;
-    format_ptr1 = pbVar3 + 1;
-    pbVar3 = pbVar3 + 1;
-    pbVar9 = (char *)pbVar3;
-    if (*format_ptr1 != 0) goto LAB_00267bcc;
+    *end = cur_ch;
+    end = end + 1;
+    if (2 < (byte)*formatBufPtr - 1) goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
+    formatBufPtrCopy = (byte *)(formatBufPtr + 1);
+    formatBufPtr = formatBufPtr + 1;
+    formatBufPtr_ = (byte *)formatBufPtr;
+    if (*formatBufPtrCopy != 0) goto LAB_00267bcc;
   }
-  *dest = 0;
-  if (args__ == (long)(unaff_s7_lo + 4)) {
+  *end = 0;
+  if (destination == (long)(unaff_s7_lo + 4)) {
     if (DiskBoot == 0) {
       return (String_type *)0x0;
     }
   }
   else {
-    if (args__ == CONCAT44(unaff_s7_hi,unaff_s7_lo)) {
-      formattedString = make_string_from_c(buf);
+    if (destination == CONCAT44(unaff_s7_hi,unaff_s7_lo)) {
+      formattedString = (String_type *)make_string_from_c(buf);
       PrintPending = buf;
       *buf = '\0';
       return formattedString;
     }
-    if (args__ != 0) {
-      if ((args__ & 7) != 4) {
+    if (destination != 0) {
+      if ((destination & 7) != 4) {
         return (String_type *)0x0;
       }
-      if (args[-1] == *(int *)(unaff_s7_lo + 0xf)) {
-        strncat((char *)(args + 1),buf,(long)*args);
+      piVar4 = (int *)destination;
+      if (piVar4[-1] == *(int *)(unaff_s7_lo + 0xf)) {
+        strncat((char *)(piVar4 + 1),buf,(long)*piVar4);
       }
       else {
-        if (args[-1] != *(int *)(unaff_s7_lo + 0x8b)) {
+        if (piVar4[-1] != *(int *)(unaff_s7_lo + 0x8b)) {
           return (String_type *)0x0;
         }
-        sVar2 = strlen(buf);
-        sceWrite(args[3],(const_void *)buf,(int)sVar2);
+        sVar1 = strlen(buf);
+        sceWrite(piVar4[3],(const_void *)buf,(int)sVar1);
       }
       goto LAB_002683dc;
     }
@@ -170587,64 +170593,66 @@ LAB_002683dc:
   PrintPending = buf;
   *buf = '\0';
   return (String_type *)0x0;
-LAB_00267c50:
-  pbVar9 = (char *)(format_ptr1 + 1);
-  switch(*pbVar9) {
+CHECK_NEWLINE_FMT_LAB_00267C50:
+  formatBufLookAhead = (char *)(formatBufPtrCopy + 1);
+  switch(*formatBufLookAhead) {
   case '%':
-    *dest = '\n';
-    dest = dest + 1;
-    if (((uVar6 != 0) && (format_ptr1[2] != 0)) && (format_ptr2 = 0, uVar6 != 0)) {
+    *end = '\n';
+    end = end + 1;
+    formatBufPtr = formatBufLookAhead;
+    if (((uVar3 != 0) && (formatBufPtrCopy[2] != 0)) && (char_int = 0, uVar3 != 0)) {
       do {
-        format_ptr2 = format_ptr2 + 1;
-        *dest = ' ';
-        dest = dest + 1;
-      } while (format_ptr2 < (int)uVar6);
-      pbVar3 = format_ptr1 + 2;
-      goto LAB_00267b8c;
+        char_int = char_int + 1;
+        *end = ' ';
+        end = end + 1;
+      } while (char_int < (int)uVar3);
+      formatBufPtr = (char *)(formatBufPtrCopy + 2);
+      goto LOOP_START_LAB_00267b8c;
     }
-    goto LAB_00267bd8;
+    goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   default:
-    MsgErr("format: unknown code 0x%02x\n",*pbVar9);
-    pbVar3 = format_ptr1 + 2;
-    goto LAB_00267b8c;
+    MsgErr("format: unknown code 0x%02x\n",*formatBufLookAhead);
+    formatBufPtr = (char *)(formatBufPtrCopy + 2);
+    goto LOOP_START_LAB_00267b8c;
   case 'A':
   case 'a':
-    pfVar8 = pfVar7 + 2;
-    *dest = 0;
-    print_object((u32)*pfVar7);
+    nextArg = curArg + 1;
+    *end = 0;
+    print_object((u32)*curArg);
     break;
   case 'B':
   case 'b':
-    value = *(s64 *)pfVar7;
+    value = *curArg;
     pad = '0';
     base = 2;
     goto LAB_00267e40;
   case 'C':
   case 'c':
-    *dest = *(byte *)pfVar7;
-    pfVar7 = pfVar7 + 2;
-    dest = dest + 1;
-    goto LAB_00267bd8;
+    *end = (byte)*curArg;
+    curArg = curArg + 1;
+    end = end + 1;
+    formatBufPtr = formatBufLookAhead;
+    goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   case 'D':
   case 'd':
-    value = *(s64 *)pfVar7;
+    value = *curArg;
     pad = ' ';
     base = 10;
     goto LAB_00267e40;
   case 'E':
   case 'e':
     desired_len = -1;
-    pcVar5 = (float)(uint)*pfVar7 / 300.0;
+    pcVar5 = (float)(uint)*curArg / 300.0;
     goto LAB_00267cec;
   case 'F':
-    pcVar5 = *pfVar7;
+    pcVar5 = *(float *)curArg;
     desired_len = 0xc;
     goto LAB_00267cec;
   case 'G':
   case 'g':
-    *dest = 0;
-    pfVar8 = pfVar7 + 2;
-    strcat(dest,(char *)*pfVar7);
+    *end = 0;
+    nextArg = curArg + 1;
+    strcat(end,*(char **)curArg);
     break;
   case 'H':
   case 'J':
@@ -170668,116 +170676,122 @@ LAB_00267c50:
   case 'w':
   case 'y':
   case 'z':
-    if (pbVar3 < pbVar9) {
+    formatBufPtr_ = (byte *)formatBufLookAhead;
+    if (formatBufPtr < formatBufLookAhead) {
       do {
-        *dest = *pbVar3;
-        pbVar3 = pbVar3 + 1;
-        dest = dest + 1;
-      } while (pbVar3 < pbVar9);
-      temp_format_value = *pbVar9;
+        *end = *formatBufPtr;
+        formatBufPtr = formatBufPtr + 1;
+        end = end + 1;
+      } while (formatBufPtr < formatBufLookAhead);
+      cur_ch = *formatBufLookAhead;
+      formatBufPtr = formatBufLookAhead;
     }
     else {
 LAB_00267bcc:
-      temp_format_value = *pbVar9;
+      formatBufPtr = (char *)formatBufPtr_;
+      cur_ch = *formatBufPtr;
     }
     goto LAB_00267bd0;
   case 'I':
   case 'i':
-    *dest = 0;
-    pfVar8 = pfVar7 + 2;
-    inspect_object((u32)*pfVar7);
+    *end = 0;
+    nextArg = curArg + 1;
+    inspect_object((u32)*curArg);
     break;
   case 'M':
   case 'm':
                     // 1 / 4096.0
                     // = 0.00024414062
-    pcVar5 = *pfVar7 * 0.00024414062;
+    pcVar5 = *(float *)curArg * 0.00024414062;
     goto LAB_00267f30;
   case 'O':
   case 'o':
-    *dest = '~';
-    kitoa(dest + 1,*(s64 *)pfVar7,10,0,' ',0);
-    pfVar7 = pfVar7 + 2;
-    dest = strend(dest + 1);
-    temp_format_value = 'u';
+    *end = '~';
+    kitoa(end + 1,*curArg,10,0,' ',0);
+    curArg = curArg + 1;
+    end = strend(end + 1);
+    cur_ch = 'u';
+    formatBufPtr = formatBufLookAhead;
     goto LAB_00267bd0;
   case 'P':
   case 'p':
-    *dest = 0;
-    pfVar8 = pfVar7 + 2;
-    print_object((u32)*pfVar7);
+    *end = 0;
+    nextArg = curArg + 1;
+    print_object((u32)*curArg);
     break;
   case 'Q':
   case 'q':
     kqtoa_G();
-    pfVar8 = pfVar7;
+    nextArg = curArg;
     break;
   case 'R':
   case 'r':
     desired_len = -1;
                     // 1 / 65536
                     // = 1.5258789e-05
-    pcVar5 = *pfVar7 * 360.0 * 1.5258789e-05;
+    pcVar5 = *(float *)curArg * 360.0 * 1.5258789e-05;
     goto LAB_00267cec;
   case 'S':
   case 's':
-    obj = *pfVar7;
-    pfVar8 = pfVar7 + 2;
-    *dest = 0;
-    if ((((uint)obj & 7) == 4) && (*(int *)((int)obj - 4) == *(int *)(unaff_s7_lo + 0xf))) {
-      cprintf("%s",(int)obj + 4);
+    uVar2 = (uint)*curArg;
+    nextArg = curArg + 1;
+    *end = 0;
+    if (((uVar2 & 7) == 4) && (*(int *)(uVar2 - 4) == *(int *)(unaff_s7_lo + 0xf))) {
+      cprintf("%s",uVar2 + 4);
     }
     else {
-      print_object((u32)obj);
+      print_object(uVar2);
     }
     break;
   case 'T':
-    format_ptr2 = 0;
+    char_int = 0;
     do {
-      format_ptr2 = format_ptr2 + 1;
-      *dest = '\t';
-      dest = dest + 1;
-    } while (format_ptr2 < 1);
-    pbVar3 = format_ptr1 + 2;
-    goto LAB_00267b8c;
+      char_int = char_int + 1;
+      *end = '\t';
+      end = end + 1;
+    } while (char_int < 1);
+    formatBufPtr = (char *)(formatBufPtrCopy + 2);
+    goto LOOP_START_LAB_00267b8c;
   case 'X':
   case 'x':
     pad = '0';
-    value = *(s64 *)pfVar7;
+    value = *curArg;
     base = 0x10;
 LAB_00267e40:
-    kitoa(dest,value,base,-1,pad,0);
-    pfVar8 = pfVar7 + 2;
+    kitoa(end,value,base,-1,pad,0);
+    nextArg = curArg + 1;
     break;
   case 'f':
-    pcVar5 = *pfVar7;
+    pcVar5 = *(float *)curArg;
 LAB_00267f30:
     desired_len = -1;
 LAB_00267cec:
-    ftoa(dest,pcVar5,desired_len,' ',4,0);
-    pfVar8 = pfVar7 + 2;
+    ftoa(end,pcVar5,desired_len,' ',4,0);
+    nextArg = curArg + 1;
     break;
   case 't':
-    format_ptr2 = 0;
+    char_int = 0;
     do {
-      format_ptr2 = format_ptr2 + 1;
-      *dest = ' ';
-      dest = dest + 1;
-    } while (format_ptr2 < 8);
-    pbVar3 = format_ptr1 + 2;
-    goto LAB_00267b8c;
+      char_int = char_int + 1;
+      *end = ' ';
+      end = end + 1;
+    } while (char_int < 8);
+    formatBufPtr = (char *)(formatBufPtrCopy + 2);
+    goto LOOP_START_LAB_00267b8c;
   case '~':
-    temp_format_value = '~';
+    cur_ch = '~';
+    formatBufPtr = formatBufLookAhead;
 LAB_00267bd0:
-    *dest = temp_format_value;
-    dest = dest + 1;
-    goto LAB_00267bd8;
+    *end = cur_ch;
+    end = end + 1;
+    goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   }
-  dest = strend(dest);
-  pfVar7 = pfVar8;
-LAB_00267bd8:
-  pbVar3 = (byte *)(pbVar9 + 1);
-  goto LAB_00267b8c;
+  end = strend(end);
+  curArg = nextArg;
+  formatBufPtr = formatBufLookAhead;
+LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8:
+  formatBufPtr = formatBufPtr + 1;
+  goto LOOP_START_LAB_00267b8c;
 }
 
 
@@ -172546,7 +172560,7 @@ void InitMachineScheme(void)
 {
   u32 *puVar1;
   u32 *puVar2;
-  String_type *pSVar3;
+  uintptr_t uVar3;
   int iVar4;
   u64 uVar5;
   bool jump_from_c_to_goal;
@@ -172597,8 +172611,8 @@ void InitMachineScheme(void)
   puVar2 = intern_from_c(-1,0,DebugBootMessage);
   *(u32 **)((int)puVar1 + -1) = puVar2;
   puVar1 = intern_from_c(-1,0,"*user*");
-  pSVar3 = make_string_from_c(DebugBootUser);
-  *(String_type **)((int)puVar1 + -1) = pSVar3;
+  uVar3 = make_string_from_c(DebugBootUser);
+  *(uintptr_t *)((int)puVar1 + -1) = uVar3;
   if (DiskBoot != 0) {
     puVar1 = intern_from_c(-1,0,"*kernel-boot-mode*");
     puVar2 = intern_from_c(-1,0,"boot");
@@ -172614,25 +172628,25 @@ void InitMachineScheme(void)
     *(undefined4 *)((int)puVar1 + -1) = *(undefined4 *)((int)puVar2 + (SymbolString - unaff_s7_lo));
   }
   puVar1 = intern_from_c(-1,0,"*kernel-boot-art-group*");
-  pSVar3 = make_string_from_c(DebugBootArtGroup);
-  *(String_type **)((int)puVar1 + -1) = pSVar3;
+  uVar3 = make_string_from_c(DebugBootArtGroup);
+  *(uintptr_t *)((int)puVar1 + -1) = uVar3;
   if (DiskBoot != 0) {
     *EnableMethodSet = *EnableMethodSet + 1;
     load_and_link_dgo_from_c("game",&kglobalheapinfo,0xd,0x400000,jump_from_c_to_goal);
     iVar4 = kernel_packages;
     *EnableMethodSet = *EnableMethodSet + -1;
-    pSVar3 = make_string_from_c("engine");
-    uVar5 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),(u32)pSVar3,
+    uVar3 = make_string_from_c("engine");
+    uVar5 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),uVar3,
                      *(u32 *)(kernel_packages + -1));
     *(int *)(iVar4 + -1) = (int)uVar5;
     iVar4 = kernel_packages;
-    pSVar3 = make_string_from_c("game");
-    uVar5 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),(u32)pSVar3,
+    uVar3 = make_string_from_c("game");
+    uVar5 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),uVar3,
                      *(u32 *)(kernel_packages + -1));
     *(int *)(iVar4 + -1) = (int)uVar5;
     iVar4 = kernel_packages;
-    pSVar3 = make_string_from_c("common");
-    uVar5 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),(u32)pSVar3,
+    uVar3 = make_string_from_c("common");
+    uVar5 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),uVar3,
                      *(u32 *)(kernel_packages + -1));
     *(int *)(iVar4 + -1) = (int)uVar5;
     call_goal_function_by_name("play-boot");
@@ -172872,12 +172886,12 @@ u64 make_string(u32 size)
 
 
 
-String_type * make_string_from_c(const_char *c_str)
+uintptr_t make_string_from_c(const_char *c_str)
 
 {
-  String_type *pSVar1;
+  int *piVar1;
   size_t str_size;
-  u64 mem;
+  u64 string;
   int mem_size;
   u32 pp;
   int unaff_s7_lo;
@@ -172887,11 +172901,11 @@ String_type * make_string_from_c(const_char *c_str)
   if (mem_size < 9) {
     mem_size = 8;
   }
-  mem = alloc_heap_object(unaff_s7_lo + 0xa0,*(u32 *)(unaff_s7_lo + 0xf),mem_size + 8,pp);
-  pSVar1 = (String_type *)mem;
-  pSVar1->length = (int)str_size;
-  strcpy(pSVar1->buffer,c_str);
-  return pSVar1;
+  string = alloc_heap_object(unaff_s7_lo + 0xa0,*(u32 *)(unaff_s7_lo + 0xf),mem_size + 8,pp);
+  piVar1 = (int *)string;
+  *piVar1 = (int)str_size;
+  strcpy((char *)(piVar1 + 1),c_str);
+  return (uintptr_t)piVar1;
 }
 
 
@@ -173045,16 +173059,16 @@ u32 make_raw_function_symbol_from_c(const_char *name,u32 value)
 u32 * set_fixed_symbol(FixedSymbolOffset offset,const_char *name,u32 value)
 
 {
-  String_type *pSVar1;
+  uintptr_t uVar1;
   u32 *sym;
   int unaff_s7_lo;
   
   sym = (u32 *)(unaff_s7_lo + offset);
   *(u32 *)((int)sym + -1) = value;
   kheaplogging = true;
-  pSVar1 = make_string_from_c(name);
+  uVar1 = make_string_from_c(name);
   kheaplogging = false;
-  *(String_type **)((int)sym + (SymbolString - unaff_s7_lo)) = pSVar1;
+  *(uintptr_t *)((int)sym + (SymbolString - unaff_s7_lo)) = uVar1;
   NumSymbols = NumSymbols + 1;
   return sym;
 }
@@ -173136,7 +173150,7 @@ u32 * intern_from_c(int sym_id,int flags,const_char *name)
 
 {
   u32 *symbol;
-  String_type *pSVar1;
+  uintptr_t uVar1;
   u64 uVar2;
   int *sptr;
   int unaff_s7_lo;
@@ -173165,8 +173179,8 @@ u32 * intern_from_c(int sym_id,int flags,const_char *name)
       return symbol;
     }
     MsgWarn("dkernel: upgrading symbol %s (flags #x%x) from debug heap to global\n",name,flags);
-    pSVar1 = make_string_from_c(name);
-    *(String_type **)((int)symbol + (SymbolString - unaff_s7_lo)) = pSVar1;
+    uVar1 = make_string_from_c(name);
+    *(uintptr_t *)((int)symbol + (SymbolString - unaff_s7_lo)) = uVar1;
     kheaplogging = false;
     return symbol;
   }
@@ -173176,12 +173190,12 @@ u32 * intern_from_c(int sym_id,int flags,const_char *name)
       goto LAB_0026bdd0;
     }
     uVar2 = make_debug_string_from_c(name);
-    pSVar1 = (String_type *)uVar2;
+    uVar1 = (uintptr_t)uVar2;
   }
   else {
-    pSVar1 = make_string_from_c(name);
+    uVar1 = make_string_from_c(name);
   }
-  *(String_type **)((int)symbol + (SymbolString - unaff_s7_lo)) = pSVar1;
+  *(uintptr_t *)((int)symbol + (SymbolString - unaff_s7_lo)) = uVar1;
 LAB_0026bdd0:
   NumSymbols = NumSymbols + 1;
   kheaplogging = false;
@@ -173292,7 +173306,7 @@ Type * set_fixed_type(FixedSymbolTypeOffset offset,const_char *name,Type **paren
 
 {
   Function *pFVar1;
-  String_type *pSVar2;
+  uintptr_t uVar2;
   Type *type;
   Type **sym;
   int unaff_s7_lo;
@@ -173301,10 +173315,10 @@ Type * set_fixed_type(FixedSymbolTypeOffset offset,const_char *name,Type **paren
   sym = (Type **)(unaff_s7_lo + offset);
   kheaplogging = true;
   type = *(Type **)((int)sym + -1);
-  pSVar2 = make_string_from_c(name);
+  uVar2 = make_string_from_c(name);
   kheaplogging = false;
   NumSymbols = NumSymbols + 1;
-  *(String_type **)((int)sym + (SymbolString - unaff_s7_lo)) = pSVar2;
+  *(uintptr_t *)((int)sym + (SymbolString - unaff_s7_lo)) = uVar2;
   if (type == (Type *)0x0) {
     type = alloc_and_init_type(sym,(uint)(flags >> 0x20) & 0xffff,true);
   }
@@ -175528,7 +175542,7 @@ void InitListener(void)
 {
   u32 *puVar1;
   u32 *puVar2;
-  String_type *car;
+  uintptr_t car;
   u64 uVar3;
   int unaff_s7_lo;
   
@@ -175546,7 +175560,7 @@ void InitListener(void)
   *(int *)((int)puVar2 + -1) = unaff_s7_lo;
   puVar1 = kernel_packages;
   car = make_string_from_c("kernel");
-  uVar3 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),(u32)car,
+  uVar3 = new_pair(unaff_s7_lo + 0xa0,*(Type **)(unaff_s7_lo + 0x6f),car,
                    *(u32 *)((int)kernel_packages + -1));
   *(int *)((int)puVar1 + -1) = (int)uVar3;
   if (MasterDebug != 0) {
