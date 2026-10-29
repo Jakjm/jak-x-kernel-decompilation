@@ -10581,7 +10581,7 @@ LAB_00100f3c:
 
 
 
-void __udivdi3_Proxy_G(undefined8 param_1,undefined8 param_2)
+void _integerDivide_udivdi3_Proxy_G(undefined8 param_1,undefined8 param_2)
 
 {
   __udivdi3(param_1,param_2,0);
@@ -10923,7 +10923,7 @@ LAB_00101604:
 
 
 
-undefined8 __umoddi3_Proxy_G(undefined8 param_1,undefined8 param_2)
+undefined8 _integerMod_umoddi3_Proxy_G(undefined8 param_1,undefined8 param_2)
 
 {
   undefined8 local_20 [2];
@@ -17068,7 +17068,7 @@ int _memalign_r(undefined8 param_1,ulong param_2,undefined8 param_3)
     iVar8 = (int)lVar2;
     iVar9 = iVar8 + -8;
     __malloc_lock_Q(param_1);
-    lVar3 = __umoddi3_Proxy_G(lVar2,param_2 & 0xffffffff);
+    lVar3 = _integerMod_umoddi3_Proxy_G(lVar2,param_2 & 0xffffffff);
     iVar1 = iVar9;
     if (lVar3 != 0) {
       iVar1 = ((iVar8 + iVar6) - 1U & -iVar6) - 8;
@@ -21733,8 +21733,8 @@ LAB_0010fdec:
     uVar13 = 0x7fffffffffffffff;
   }
   iVar14 = 0;
-  iVar5 = __umoddi3_Proxy_G(uVar13,param_4);
-  uVar6 = __udivdi3_Proxy_G(uVar13,param_4);
+  iVar5 = _integerMod_umoddi3_Proxy_G(uVar13,param_4);
+  uVar6 = _integerDivide_udivdi3_Proxy_G(uVar13,param_4);
   uVar7 = 0;
   do {
     iVar9 = (int)lVar10;
@@ -21849,8 +21849,8 @@ LAB_0011005c:
     }
   }
   iVar13 = 0;
-  uVar6 = __udivdi3_Proxy_G(0xffffffffffffffff,param_4);
-  iVar5 = __umoddi3_Proxy_G(0xffffffffffffffff,param_4);
+  uVar6 = _integerDivide_udivdi3_Proxy_G(0xffffffffffffffff,param_4);
+  iVar5 = _integerMod_umoddi3_Proxy_G(0xffffffffffffffff,param_4);
   uVar7 = 0;
   do {
     iVar9 = (int)lVar10;
@@ -22491,10 +22491,10 @@ LAB_00110b10:
   goto LAB_0011075c;
 joined_r0x00110edc:
   while (9 < uVar17) {
-    cVar12 = __umoddi3_Proxy_G(uVar17,10);
+    cVar12 = _integerMod_umoddi3_Proxy_G(uVar17,10);
     pcVar24 = pcVar24 + -1;
     *pcVar24 = cVar12 + '0';
-    uVar17 = __udivdi3_Proxy_G(uVar17,10);
+    uVar17 = _integerDivide_udivdi3_Proxy_G(uVar17,10);
   }
   cVar12 = (char)uVar17 + '0';
   pcVar24 = pcVar24 + -1;
@@ -23257,8 +23257,8 @@ LAB_001118b0:
   }
   goto LAB_001114cc;
 joined_r0x00112384:
-  for (; 9 < (ulong)dVar8; dVar8 = (double)__udivdi3_Proxy_G(dVar8,10)) {
-    cVar2 = __umoddi3_Proxy_G(dVar8,10);
+  for (; 9 < (ulong)dVar8; dVar8 = (double)_integerDivide_udivdi3_Proxy_G(dVar8,10)) {
+    cVar2 = _integerMod_umoddi3_Proxy_G(dVar8,10);
     pcVar17 = pcVar17 + -1;
     *pcVar17 = cVar2 + '0';
   }
@@ -28178,9 +28178,9 @@ LAB_0011635c:
       do {
         local_b0 = (undefined4)lVar17;
         uStack_ac = (undefined4)((ulong)lVar17 >> 0x20);
-        cVar9 = __umoddi3_Proxy_G(uVar20,10);
+        cVar9 = _integerMod_umoddi3_Proxy_G(uVar20,10);
         *pbVar21 = cVar9 + 0x30;
-        uVar20 = __udivdi3_Proxy_G(uVar20,10);
+        uVar20 = _integerDivide_udivdi3_Proxy_G(uVar20,10);
         pbVar21 = pbVar21 + -1;
         lVar17 = CONCAT44(uStack_ac,local_b0);
       } while (uVar20 != 0);
@@ -35341,14 +35341,15 @@ void FUN_0011fc98(long param_1,long param_2,long param_3)
   uint uVar1;
   undefined4 uVar2;
   
-  uVar1 = __udivdi3_Proxy_G(param_1,0x8ca0000);
+  uVar1 = _integerDivide_udivdi3_Proxy_G(param_1,0x8ca0000);
   if (param_2 != 0) {
     *(uint *)param_2 = uVar1;
   }
   if (param_3 != 0) {
-    uVar2 = __udivdi3_Proxy_G((param_1 -
-                              ((long)(int)((ulong)uVar1 * 0x8ca0000 >> 0x20) << 0x20 |
-                              (ulong)uVar1 * 0x8ca0000 & 0xffffffff)) * 1000000,0x8ca0000);
+    uVar2 = _integerDivide_udivdi3_Proxy_G
+                      ((param_1 -
+                       ((long)(int)((ulong)uVar1 * 0x8ca0000 >> 0x20) << 0x20 |
+                       (ulong)uVar1 * 0x8ca0000 & 0xffffffff)) * 1000000,0x8ca0000);
     *(undefined4 *)param_3 = uVar2;
   }
   return;
@@ -35363,7 +35364,8 @@ long TimerUSec2BusClock(int param_1,ulong param_2)
   long lVar2;
   
   uVar1 = (param_2 & 0xffffffff) * 0x8ca0000;
-  lVar2 = __udivdi3_Proxy_G((long)(int)(uVar1 >> 0x20) << 0x20 | uVar1 & 0xffffffff,1000000);
+  lVar2 = _integerDivide_udivdi3_Proxy_G
+                    ((long)(int)(uVar1 >> 0x20) << 0x20 | uVar1 & 0xffffffff,1000000);
   return (ulong)(uint)(param_1 * 0x8ca0000) + lVar2;
 }
 
@@ -104805,9 +104807,9 @@ long FUN_0017fd88(int param_1,ulong param_2,undefined8 param_3)
   puVar6 = &DAT_001f3ba8 + param_1 * 0x14;
   puVar7 = (uint *)param_3;
   if (param_2 == 0x4010426e) {
-    uVar2 = __udivdi3_Proxy_G(*(undefined8 *)(&DAT_001f3bc8 + iVar1),100);
+    uVar2 = _integerDivide_udivdi3_Proxy_G(*(undefined8 *)(&DAT_001f3bc8 + iVar1),100);
     *(undefined8 *)puVar7 = uVar2;
-    lVar3 = __umoddi3_Proxy_G(*(undefined8 *)(&DAT_001f3bc8 + iVar1),100);
+    lVar3 = _integerMod_umoddi3_Proxy_G(*(undefined8 *)(&DAT_001f3bc8 + iVar1),100);
     *(long *)(puVar7 + 2) = lVar3 * 10000;
   }
   else if (param_2 < 0x4010426f) {
@@ -130463,14 +130465,14 @@ LAB_001a4f5c:
   }
   if (local_f0 != *(ushort *)(piVar24 + 9)) {
     if ((int)local_f0 < (int)(uint)*(ushort *)(piVar24 + 9)) {
-      uVar10 = __udivdi3_Proxy_G(*(undefined8 *)(piVar24 + 0x22),(short)piVar24[9]);
+      uVar10 = _integerDivide_udivdi3_Proxy_G(*(undefined8 *)(piVar24 + 0x22),(short)piVar24[9]);
       iVar26 = __muldi3(uVar10,local_f0);
       uVar18 = (long)iVar26;
       if ((ulong)(long)iVar26 <= (ulong)(long)(int)local_f0) {
         uVar18 = (long)(int)local_f0;
       }
       *(ulong *)(piVar24 + 0x22) = uVar18 & 0xffffffff;
-      uVar10 = __udivdi3_Proxy_G(*(undefined8 *)(piVar24 + 0x24),(short)piVar24[9]);
+      uVar10 = _integerDivide_udivdi3_Proxy_G(*(undefined8 *)(piVar24 + 0x24),(short)piVar24[9]);
       iVar26 = __muldi3(uVar10,local_f0);
       uVar18 = (long)iVar26;
       if ((ulong)(long)iVar26 <= (ulong)(long)(int)local_f0) {
@@ -131624,7 +131626,7 @@ LAB_001a6b44:
     lVar14 = *(long *)(iVar3 + 0x88);
     uVar1 = *(ushort *)(iVar13 + 0x24);
   }
-  uVar12 = __udivdi3_Proxy_G(uVar10 + (uVar1 >> 1),*(undefined2 *)(iVar13 + 0x24));
+  uVar12 = _integerDivide_udivdi3_Proxy_G(uVar10 + (uVar1 >> 1),*(undefined2 *)(iVar13 + 0x24));
   uVar10 = 2;
   if (1 < uVar12) {
     uVar10 = uVar12;
@@ -132036,7 +132038,7 @@ void FUN_001a7328(undefined8 param_1,uint param_2)
     *(short *)(iVar7 + 0x24) = (short)uVar4;
   }
   else {
-    uVar3 = __udivdi3_Proxy_G(uVar4 + (long)(iVar1 + -1),uVar6);
+    uVar3 = _integerDivide_udivdi3_Proxy_G(uVar4 + (long)(iVar1 + -1),uVar6);
     uVar4 = __muldi3(uVar3,uVar6);
     uVar6 = 0x40000;
     if (uVar4 < 0x40001) {
@@ -132089,7 +132091,8 @@ void FUN_001a7468(int param_1)
   }
   uVar7 = (ulong)uVar1;
   if (uVar7 < uVar5) {
-    uVar4 = __udivdi3_Proxy_G(uVar5 + (long)(int)(*(ushort *)(param_1 + 0x22) - 1),uVar7);
+    uVar4 = _integerDivide_udivdi3_Proxy_G
+                      (uVar5 + (long)(int)(*(ushort *)(param_1 + 0x22) - 1),uVar7);
     uVar7 = __muldi3(uVar4,uVar7);
     uVar5 = 0x40000;
     if (uVar7 < 0x40001) {
@@ -132149,7 +132152,7 @@ LAB_001a75f0:
     sVar2 = sVar2 >> 1;
   }
   else {
-    sVar2 = __udivdi3_Proxy_G(*(long *)(iVar4 + 0x98),0x7a12);
+    sVar2 = _integerDivide_udivdi3_Proxy_G(*(long *)(iVar4 + 0x98),0x7a12);
   }
   *(short *)(param_1 + 0xa2) = sVar2;
   iVar3 = ((int)((uint)*(ushort *)(param_1 + 0xa0) << 0x10) >> 0x12) +
@@ -136087,11 +136090,11 @@ undefined4 FUN_001acfc8(long *param_1)
   uVar3 = 0;
   if ((-1 < lVar1) && ((lVar1 != 0 || (0 < lVar2)))) {
     if (lVar1 < 0x8637bd05af7) {
-      lVar1 = __udivdi3_Proxy_G(lVar1 * 1000000 + lVar2 + 9999,10000);
+      lVar1 = _integerDivide_udivdi3_Proxy_G(lVar1 * 1000000 + lVar2 + 9999,10000);
       uVar3 = lVar1 + 1;
     }
     else if (lVar1 < 0x147ae147ae147af) {
-      lVar2 = __udivdi3_Proxy_G(lVar2 + 9999,10000);
+      lVar2 = _integerDivide_udivdi3_Proxy_G(lVar2 + 9999,10000);
       uVar3 = lVar1 * 100 + lVar2 + 1;
     }
     else {
@@ -169944,8 +169947,11 @@ void cprintf(const_char *format,...)
   local_18 = in_t1;
   local_10 = in_t2;
   local_8 = in_t3;
+                    // va_list args;
+                    // va_start(args, format);
   PrintPending = strend(str);
   vsprintf(PrintPending,format,&local_38);
+                    // va_end(args);
   return;
 }
 
@@ -170278,63 +170284,66 @@ void ftoa(char *out_str,float x,s32 desired_len,char pad_char,s32 precision,u32 
 char * kitoa(char *buffer,s64 value,u64 base,s32 length,char pad,u32 flag)
 
 {
-  int iVar1;
-  long lVar2;
-  char cVar3;
-  char *pcVar4;
-  int iVar5;
-  int iVar6;
-  int local_48;
+  s64 cur;
+  char c;
+  int m;
+  char *bufferEnd;
+  int len;
+  int count;
+  int negativeValue;
   
-  local_48 = 0;
-  lVar2 = value;
+                    // This really should have type s64, the same as `value`, not sure why there's
+                    // only 4 bytes for it.
+  negativeValue = 0;
+  cur = value;
   if ((value < 0) && (base == 10)) {
-    local_48 = (int)value;
-    lVar2 = -value;
+    cur = -value;
+    negativeValue = (int)value;
   }
-  iVar6 = 0;
+  count = 0;
   do {
-    iVar5 = iVar6;
-    iVar1 = __umoddi3_Proxy_G(lVar2,(int)base);
-    iVar6 = iVar5 + 1;
-    buffer[iVar5] = ConvertTable_G[iVar1];
-    lVar2 = __udivdi3_Proxy_G(lVar2,(int)base);
-  } while (lVar2 != 0);
-  if (local_48 < 0) {
-    buffer[iVar6] = '-';
-    iVar6 = iVar5 + 2;
+    len = count;
+    m = _integerMod_umoddi3_Proxy_G(cur,(int)base);
+    count = len + 1;
+    buffer[len] = ConvertTable_G[m];
+    cur = _integerDivide_udivdi3_Proxy_G(cur,(int)base);
+  } while (cur != 0);
+  if (negativeValue < 0) {
+    buffer[count] = '-';
+    count = len + 2;
   }
-  iVar1 = length - iVar6;
-  if (iVar1 < 1) {
-    pcVar4 = buffer + iVar6;
-    if (((length < 1) || (-1 < value)) || ((base != 2 && (pcVar4 = buffer + iVar6, base != 0x10))))
-    goto LAB_00267998;
-    if (length < iVar6) {
-      cVar3 = 'f';
-      if (base != 0x10) {
-        cVar3 = '1';
+  m = length - count;
+                    // m is rLen in the OpenGoal code
+  if (m < 1) {
+    bufferEnd = buffer + count;
+    if (((length < 1) || (-1 < value)) || ((base != 2 && (bufferEnd = buffer + count, base != 16))))
+    goto REVERSE_AND_NULL_TERMINATE_RETURN;
+    if (length < count) {
+      c = 'f';
+      if (base != 16) {
+        c = '1';
       }
       do {
-        if (buffer[iVar6 + -1] != cVar3) break;
-        iVar6 = iVar6 + -1;
-      } while (length < iVar6);
-      pcVar4 = buffer + iVar6;
-      if ((flag & 2) != 0) goto LAB_00267998;
-      buffer[iVar6] = '-';
-      iVar6 = iVar6 + 1;
+        if (buffer[count + -1] != c) break;
+        count = count + -1;
+      } while (length < count);
+      bufferEnd = buffer + count;
+      if ((flag & 2) != 0) goto REVERSE_AND_NULL_TERMINATE_RETURN;
+      buffer[count] = '-';
+      count = count + 1;
     }
   }
   else {
     do {
-      pcVar4 = buffer + iVar6;
-      iVar1 = iVar1 + -1;
-      iVar6 = iVar6 + 1;
-      *pcVar4 = pad;
-    } while (0 < iVar1);
+      bufferEnd = buffer + count;
+      m = m + -1;
+      count = count + 1;
+      *bufferEnd = pad;
+    } while (0 < m);
   }
-  pcVar4 = buffer + iVar6;
-LAB_00267998:
-  *pcVar4 = '\0';
+  bufferEnd = buffer + count;
+REVERSE_AND_NULL_TERMINATE_RETURN:
+  *bufferEnd = '\0';
   reverse(buffer);
   return buffer;
 }
@@ -170423,10 +170432,10 @@ void kqtoa_G(void)
 // WARNING: Removing unreachable block (ram,0x00267edc)
 // WARNING: Unable to use type for symbol formatBufPtr_
 
-String_type * format_impl_jakx(uint64_t destination,char *format_string,int64_t args [1])
+String_type * format_impl_jakx(uint64_t destination,char *format_string,int64_t *args)
 
 {
-  char *buf;
+  char *bufStart;
   String_type *formattedString;
   size_t sVar1;
   char *str;
@@ -170439,7 +170448,7 @@ String_type * format_impl_jakx(uint64_t destination,char *format_string,int64_t 
   uint uVar2;
   int ch;
   uint uVar3;
-  char *end;
+  char *bufEnd;
   char *formatBufLookAhead;
   byte *formatBufPtrCopy;
   int64_t *curArg;
@@ -170447,33 +170456,33 @@ String_type * format_impl_jakx(uint64_t destination,char *format_string,int64_t 
   int unaff_s7_lo;
   undefined4 unaff_s7_hi;
   int *piVar4;
-  float pcVar5;
+  float argAsFloat;
   format_struct argument_data [4];
-  int64_t *arguments;
+  int64_t *arg_ptr;
   char char;
   byte *formatBufPtr_;
-  int char_int;
   byte cur_ch;
+  int i;
   
+  _arg_ptr = (long)(int)args;
   str = PrintPending;
   if (PrintPending == (char *)0x0) {
     str = PrintBufArea + 0x18;
   }
-  _arguments = args[0];
-  buf = strend(str);
+  bufStart = strend(str);
                     // I suspect that format_string is a string type which stores its length as a 4
                     // byte integer, followed by the buffer of at least length + 1 bytes.
   formatBufPtr = format_string + 4;
   uVar3 = *(uint *)(print_column + -1) >> 3;
-  PrintPending = buf;
-  end = buf;
-  if ((uVar3 != 0) && (uVar2 = uVar3, buf[-1] == '\n')) {
+  PrintPending = bufStart;
+  bufEnd = bufStart;
+  if ((uVar3 != 0) && (uVar2 = uVar3, bufStart[-1] == '\n')) {
     for (; uVar2 != 0; uVar2 = uVar2 - 1) {
-      *end = ' ';
-      end = end + 1;
+      *bufEnd = ' ';
+      bufEnd = bufEnd + 1;
     }
   }
-  curArg = (int64_t *)&arguments;
+  curArg = (int64_t *)&arg_ptr;
 LOOP_START_LAB_00267b8c:
   while (cur_ch = *formatBufPtr, cur_ch != 0) {
     if (cur_ch == '~') {
@@ -170486,24 +170495,24 @@ LOOP_START_LAB_00267b8c:
       formatBufPtrCopy = (byte *)formatBufPtr;
 LAB_00267bfc:
       char = formatBufPtrCopy[1];
-      char_int = (int)char;
+      i = (int)char;
                     // Checking if indentation was specified?
-      if (char_int - L'0'U < 10) {
+      if (i - L'0'U < 10) {
         ch = (uint)(byte)char << 24;
       }
       else {
-        if (((char_int != L',') && (char_int != L'\'')) && (char_int != L'`')) {
+        if (((i != L',') && (i != L'\'')) && (i != L'`')) {
           if (*cur_argument_data != 0xff) goto CHECK_NEWLINE_FMT_LAB_00267C50;
-          if (char_int != L'-') {
+          if (i != L'-') {
             ch = (uint)(byte)char << 24;
-            if (char_int == L'+') goto LAB_002682b0;
+            if (i == L'+') goto LAB_002682b0;
             goto CHECK_NEWLINE_FMT_LAB_00267C50;
           }
         }
         ch = (uint)(byte)char << 24;
       }
 LAB_002682b0:
-                    // ch should be equal to char and char_int at this point
+                    // ch should be equal to char at this point
       ch = ch >> 24;
       if (ch == L',') {
         cur_argument_data = cur_argument_data + 0x40;
@@ -170536,27 +170545,27 @@ LAB_002682dc:
           cur_ch = *cur_argument_data;
           goto LAB_002682dc;
         }
-        char_int = 0;
+        i = 0;
         cur_ch = formatBufPtrCopy[2];
         while (formatBufPtrCopy = formatBufPtrCopy + 1, cur_ch != '`') {
-          cur_argument_data[char_int] = cur_ch;
-          char_int = char_int + 1;
+          cur_argument_data[i] = cur_ch;
+          i = i + 1;
           cur_ch = formatBufPtrCopy[2];
         }
         formatBufPtrCopy = formatBufPtrCopy + 1;
-        cur_argument_data[char_int] = 0;
+        cur_argument_data[i] = 0;
       }
       goto LAB_00267bfc;
     }
-    *end = cur_ch;
-    end = end + 1;
+    *bufEnd = cur_ch;
+    bufEnd = bufEnd + 1;
     if (2 < (byte)*formatBufPtr - 1) goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
     formatBufPtrCopy = (byte *)(formatBufPtr + 1);
     formatBufPtr = formatBufPtr + 1;
     formatBufPtr_ = (byte *)formatBufPtr;
     if (*formatBufPtrCopy != 0) goto LAB_00267bcc;
   }
-  *end = 0;
+  *bufEnd = 0;
   if (destination == (long)(unaff_s7_lo + 4)) {
     if (DiskBoot == 0) {
       return (String_type *)0x0;
@@ -170564,9 +170573,9 @@ LAB_002682dc:
   }
   else {
     if (destination == CONCAT44(unaff_s7_hi,unaff_s7_lo)) {
-      formattedString = (String_type *)make_string_from_c(buf);
-      PrintPending = buf;
-      *buf = '\0';
+      formattedString = (String_type *)make_string_from_c(bufStart);
+      PrintPending = bufStart;
+      *bufStart = '\0';
       return formattedString;
     }
     if (destination != 0) {
@@ -170575,37 +170584,37 @@ LAB_002682dc:
       }
       piVar4 = (int *)destination;
       if (piVar4[-1] == *(int *)(unaff_s7_lo + 0xf)) {
-        strncat((char *)(piVar4 + 1),buf,(long)*piVar4);
+        strncat((char *)(piVar4 + 1),bufStart,(long)*piVar4);
       }
       else {
         if (piVar4[-1] != *(int *)(unaff_s7_lo + 0x8b)) {
           return (String_type *)0x0;
         }
-        sVar1 = strlen(buf);
-        sceWrite(piVar4[3],(const_void *)buf,(int)sVar1);
+        sVar1 = strlen(bufStart);
+        sceWrite(piVar4[3],(const_void *)bufStart,(int)sVar1);
       }
       goto LAB_002683dc;
     }
   }
-  printf("%s",buf);
+  printf("%s",bufStart);
   fflush(*(FILE **)(_impure_ptr + 8));
 LAB_002683dc:
-  PrintPending = buf;
-  *buf = '\0';
+  PrintPending = bufStart;
+  *bufStart = '\0';
   return (String_type *)0x0;
 CHECK_NEWLINE_FMT_LAB_00267C50:
   formatBufLookAhead = (char *)(formatBufPtrCopy + 1);
   switch(*formatBufLookAhead) {
   case '%':
-    *end = '\n';
-    end = end + 1;
+    *bufEnd = '\n';
+    bufEnd = bufEnd + 1;
     formatBufPtr = formatBufLookAhead;
-    if (((uVar3 != 0) && (formatBufPtrCopy[2] != 0)) && (char_int = 0, uVar3 != 0)) {
+    if (((uVar3 != 0) && (formatBufPtrCopy[2] != 0)) && (i = 0, uVar3 != 0)) {
       do {
-        char_int = char_int + 1;
-        *end = ' ';
-        end = end + 1;
-      } while (char_int < (int)uVar3);
+        i = i + 1;
+        *bufEnd = ' ';
+        bufEnd = bufEnd + 1;
+      } while (i < (int)uVar3);
       formatBufPtr = (char *)(formatBufPtrCopy + 2);
       goto LOOP_START_LAB_00267b8c;
     }
@@ -170617,7 +170626,7 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
   case 'A':
   case 'a':
     nextArg = curArg + 1;
-    *end = 0;
+    *bufEnd = 0;
     print_object((u32)*curArg);
     break;
   case 'B':
@@ -170628,9 +170637,9 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
     goto LAB_00267e40;
   case 'C':
   case 'c':
-    *end = (byte)*curArg;
+    *bufEnd = (byte)*curArg;
     curArg = curArg + 1;
-    end = end + 1;
+    bufEnd = bufEnd + 1;
     formatBufPtr = formatBufLookAhead;
     goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   case 'D':
@@ -170642,17 +170651,17 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
   case 'E':
   case 'e':
     desired_len = -1;
-    pcVar5 = (float)(uint)*curArg / 300.0;
-    goto LAB_00267cec;
+    argAsFloat = (float)(uint)*curArg / 300.0;
+    goto FTOA;
   case 'F':
-    pcVar5 = *(float *)curArg;
+    argAsFloat = *(float *)curArg;
     desired_len = 0xc;
-    goto LAB_00267cec;
+    goto FTOA;
   case 'G':
   case 'g':
-    *end = 0;
+    *bufEnd = 0;
     nextArg = curArg + 1;
-    strcat(end,*(char **)curArg);
+    strcat(bufEnd,*(char **)curArg);
     break;
   case 'H':
   case 'J':
@@ -170679,9 +170688,9 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
     formatBufPtr_ = (byte *)formatBufLookAhead;
     if (formatBufPtr < formatBufLookAhead) {
       do {
-        *end = *formatBufPtr;
+        *bufEnd = *formatBufPtr;
         formatBufPtr = formatBufPtr + 1;
-        end = end + 1;
+        bufEnd = bufEnd + 1;
       } while (formatBufPtr < formatBufLookAhead);
       cur_ch = *formatBufLookAhead;
       formatBufPtr = formatBufLookAhead;
@@ -170694,7 +170703,7 @@ LAB_00267bcc:
     goto LAB_00267bd0;
   case 'I':
   case 'i':
-    *end = 0;
+    *bufEnd = 0;
     nextArg = curArg + 1;
     inspect_object((u32)*curArg);
     break;
@@ -170702,20 +170711,20 @@ LAB_00267bcc:
   case 'm':
                     // 1 / 4096.0
                     // = 0.00024414062
-    pcVar5 = *(float *)curArg * 0.00024414062;
+    argAsFloat = *(float *)curArg * 0.00024414062;
     goto LAB_00267f30;
   case 'O':
   case 'o':
-    *end = '~';
-    kitoa(end + 1,*curArg,10,0,' ',0);
+    *bufEnd = '~';
+    kitoa(bufEnd + 1,*curArg,10,0,' ',0);
     curArg = curArg + 1;
-    end = strend(end + 1);
+    bufEnd = strend(bufEnd + 1);
     cur_ch = 'u';
     formatBufPtr = formatBufLookAhead;
     goto LAB_00267bd0;
   case 'P':
   case 'p':
-    *end = 0;
+    *bufEnd = 0;
     nextArg = curArg + 1;
     print_object((u32)*curArg);
     break;
@@ -170729,13 +170738,13 @@ LAB_00267bcc:
     desired_len = -1;
                     // 1 / 65536
                     // = 1.5258789e-05
-    pcVar5 = *(float *)curArg * 360.0 * 1.5258789e-05;
-    goto LAB_00267cec;
+    argAsFloat = *(float *)curArg * 360.0 * 1.5258789e-05;
+    goto FTOA;
   case 'S':
   case 's':
     uVar2 = (uint)*curArg;
     nextArg = curArg + 1;
-    *end = 0;
+    *bufEnd = 0;
     if (((uVar2 & 7) == 4) && (*(int *)(uVar2 - 4) == *(int *)(unaff_s7_lo + 0xf))) {
       cprintf("%s",uVar2 + 4);
     }
@@ -170744,12 +170753,13 @@ LAB_00267bcc:
     }
     break;
   case 'T':
-    char_int = 0;
+                    // 1 tab indent
+    i = 0;
     do {
-      char_int = char_int + 1;
-      *end = '\t';
-      end = end + 1;
-    } while (char_int < 1);
+      i = i + 1;
+      *bufEnd = '\t';
+      bufEnd = bufEnd + 1;
+    } while (i < 1);
     formatBufPtr = (char *)(formatBufPtrCopy + 2);
     goto LOOP_START_LAB_00267b8c;
   case 'X':
@@ -170758,35 +170768,36 @@ LAB_00267bcc:
     value = *curArg;
     base = 0x10;
 LAB_00267e40:
-    kitoa(end,value,base,-1,pad,0);
+    kitoa(bufEnd,value,base,-1,pad,0);
     nextArg = curArg + 1;
     break;
   case 'f':
-    pcVar5 = *(float *)curArg;
+    argAsFloat = *(float *)curArg;
 LAB_00267f30:
     desired_len = -1;
-LAB_00267cec:
-    ftoa(end,pcVar5,desired_len,' ',4,0);
+FTOA:
+    ftoa(bufEnd,argAsFloat,desired_len,' ',4,0);
     nextArg = curArg + 1;
     break;
   case 't':
-    char_int = 0;
+                    // 8 space indent
+    i = 0;
     do {
-      char_int = char_int + 1;
-      *end = ' ';
-      end = end + 1;
-    } while (char_int < 8);
+      i = i + 1;
+      *bufEnd = ' ';
+      bufEnd = bufEnd + 1;
+    } while (i < 8);
     formatBufPtr = (char *)(formatBufPtrCopy + 2);
     goto LOOP_START_LAB_00267b8c;
   case '~':
     cur_ch = '~';
     formatBufPtr = formatBufLookAhead;
 LAB_00267bd0:
-    *end = cur_ch;
-    end = end + 1;
+    *bufEnd = cur_ch;
+    bufEnd = bufEnd + 1;
     goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   }
-  end = strend(end);
+  bufEnd = strend(bufEnd);
   curArg = nextArg;
   formatBufPtr = formatBufLookAhead;
 LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8:
