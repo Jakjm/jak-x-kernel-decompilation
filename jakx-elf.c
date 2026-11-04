@@ -44,6 +44,22 @@
 #define 666 0x29a
 #define sizeofLinkHeaderV5 0x50
 #define 0 0x0
+#define 10 0xa
+#define BINTEGER_OFFSET 0x0
+#define OFFSET_MASK 0x7
+#define PAIR_OFFSET 0x2
+#define SYMBOL_OFFSET 0x0
+#define BASIC_OFFSET 0x4
+#define GOAL_PRINT_METHOD 0x2
+#define GOAL_INSPECT_METHOD 0x3
+#define S7_OFF_FIX_SYM_EMPTY_PAIR -0x7
+#define FIX_SYM_QUOTE 0xe8
+#define FIX_SYM_TRUE 0x4
+#define FIX_SYM_FILE_STREAM_minus_one 0x8b
+#define FIX_SYM_STRING_TYPE_minus_one 0xf
+#define 00h 0x0
+#define LINK_FLAG_EXECUTE 0x4
+#define LINK_FLAG_OUTPUT_LOAD 0x1
 
 typedef unsigned char   undefined;
 
@@ -5663,6 +5679,8 @@ struct lconv {
 };
 
 typedef void *__gnuc_va_list;
+
+typedef __gnuc_va_list va_list;
 
 typedef void (*__sighandler_t)(int);
 
@@ -170430,61 +170448,68 @@ void kqtoa_G(void)
 // WARNING: Removing unreachable block (ram,0x00267ed8)
 // WARNING: Removing unreachable block (ram,0x00267e38)
 // WARNING: Removing unreachable block (ram,0x00267edc)
-// WARNING: Unable to use type for symbol formatBufPtr_
+// WARNING: Unable to use type for symbol format_ptr_plus_zero_or_one
 
-String_type * format_impl_jakx(uint64_t destination,char *format_string,int64_t *args)
+s32 format_impl_jakx(uint64_t destination,char *format_gstring,uint64_t arg0,uint64_t arg1,
+                    uint64_t arg2,uint64_t arg3,uint64_t arg4,uint64_t arg5)
 
 {
+  uint obj;
   char *bufStart;
-  String_type *formattedString;
-  size_t sVar1;
+  uintptr_t formattedString;
+  int resultLength;
   char *str;
-  char *formatBufPtr;
+  char *format_ptr2;
   s32 desired_len;
   s64 value;
   u64 base;
   char pad;
   byte *cur_argument_data;
-  uint uVar2;
-  int ch;
-  uint uVar3;
-  char *bufEnd;
-  char *formatBufLookAhead;
-  byte *formatBufPtrCopy;
+  int arg_char;
+  int indentation;
+  char *output_ptr;
+  char *format_ptr_plus_one;
+  byte *format_ptr;
   int64_t *curArg;
   int64_t *nextArg;
-  int unaff_s7_lo;
+  int s7_offset;
   undefined4 unaff_s7_hi;
-  int *piVar4;
+  int *outputValuePtr;
   float argAsFloat;
   format_struct argument_data [4];
-  int64_t *arg_ptr;
+  uint64_t arguments [6];
   char char;
-  byte *formatBufPtr_;
+  byte *format_ptr_plus_zero_or_one;
+  size_t outputLength;
   byte cur_ch;
   int i;
   
-  _arg_ptr = (long)(int)args;
   str = PrintPending;
   if (PrintPending == (char *)0x0) {
     str = PrintBufArea + 0x18;
   }
+  arguments[0] = arg0;
+  arguments[1] = arg1;
+  arguments[2] = arg2;
+  arguments[3] = arg3;
+  arguments[4] = arg4;
+  arguments[5] = arg5;
   bufStart = strend(str);
                     // I suspect that format_string is a string type which stores its length as a 4
                     // byte integer, followed by the buffer of at least length + 1 bytes.
-  formatBufPtr = format_string + 4;
-  uVar3 = *(uint *)(print_column + -1) >> 3;
+  format_ptr2 = format_gstring + 4;
+  indentation = *(uint *)(print_column + -1) >> 3;
   PrintPending = bufStart;
-  bufEnd = bufStart;
-  if ((uVar3 != 0) && (uVar2 = uVar3, bufStart[-1] == '\n')) {
-    for (; uVar2 != 0; uVar2 = uVar2 - 1) {
-      *bufEnd = ' ';
-      bufEnd = bufEnd + 1;
+  output_ptr = bufStart;
+  if ((indentation != 0) && (i = indentation, bufStart[-1] == '\n')) {
+    for (; i != 0; i = i + -1) {
+      *output_ptr = ' ';
+      output_ptr = output_ptr + 1;
     }
   }
-  curArg = (int64_t *)&arg_ptr;
+  curArg = (int64_t *)arguments;
 LOOP_START_LAB_00267b8c:
-  while (cur_ch = *formatBufPtr, cur_ch != 0) {
+  while (cur_ch = *format_ptr2, cur_ch != 0) {
     if (cur_ch == '~') {
       argument_data[0].data[1] = '\0';
       argument_data[3].data[0] = -1;
@@ -170492,39 +170517,41 @@ LOOP_START_LAB_00267b8c:
       argument_data[1].data[0] = -1;
       argument_data[2].data[0] = -1;
       cur_argument_data = (byte *)argument_data;
-      formatBufPtrCopy = (byte *)formatBufPtr;
-LAB_00267bfc:
-      char = formatBufPtrCopy[1];
+      format_ptr = (byte *)format_ptr2;
+DIGIT_COMMA_SINGLEQUOTE_TICK_PLUS_MINUS:
+      char = format_ptr[1];
       i = (int)char;
-                    // Checking if indentation was specified?
+                    // equivalent to checking if it's a digit, comma, single quote, backtick, or
+                    // current_argument_data != -1 and it's a minus or plus
+                    // as in OpenGoal
       if (i - L'0'U < 10) {
-        ch = (uint)(byte)char << 24;
+        arg_char = (uint)(byte)char << 24;
       }
       else {
         if (((i != L',') && (i != L'\'')) && (i != L'`')) {
           if (*cur_argument_data != 0xff) goto CHECK_NEWLINE_FMT_LAB_00267C50;
           if (i != L'-') {
-            ch = (uint)(byte)char << 24;
+            arg_char = (uint)(byte)char << 24;
             if (i == L'+') goto LAB_002682b0;
             goto CHECK_NEWLINE_FMT_LAB_00267C50;
           }
         }
-        ch = (uint)(byte)char << 24;
+        arg_char = (uint)(byte)char << 24;
       }
 LAB_002682b0:
-                    // ch should be equal to char at this point
-      ch = ch >> 24;
-      if (ch == L',') {
+                    // arg_char should be equal to char at this point
+      arg_char = arg_char >> 24;
+      if (arg_char == L',') {
         cur_argument_data = cur_argument_data + 0x40;
-        formatBufPtrCopy = formatBufPtrCopy + 1;
+        format_ptr = format_ptr + 1;
       }
-      else if (ch < L'-') {
-        if (ch == L'\'') {
-          *cur_argument_data = formatBufPtrCopy[2];
-          formatBufPtrCopy = formatBufPtrCopy + 2;
+      else if (arg_char < L'-') {
+        if (arg_char == L'\'') {
+          *cur_argument_data = format_ptr[2];
+          format_ptr = format_ptr + 2;
         }
-        else if (ch == L'+') {
-          formatBufPtrCopy = formatBufPtrCopy + 1;
+        else if (arg_char == L'+') {
+          format_ptr = format_ptr + 1;
         }
         else {
           cur_ch = *cur_argument_data;
@@ -170532,101 +170559,102 @@ LAB_002682dc:
           if (cur_ch == 0xff) {
             *cur_argument_data = 0;
           }
-          formatBufPtrCopy = formatBufPtrCopy + 1;
-          *cur_argument_data = (char + *cur_argument_data * '\n') - '0';
+          format_ptr = format_ptr + 1;
+          *cur_argument_data = (char + *cur_argument_data * 10) - '0';
         }
       }
-      else if (ch == L'-') {
-        formatBufPtrCopy = formatBufPtrCopy + 1;
+      else if (arg_char == L'-') {
+        format_ptr = format_ptr + 1;
         cur_argument_data[1] = 1;
       }
       else {
-        if (ch != L'`') {
+        if (arg_char != L'`') {
           cur_ch = *cur_argument_data;
           goto LAB_002682dc;
         }
         i = 0;
-        cur_ch = formatBufPtrCopy[2];
-        while (formatBufPtrCopy = formatBufPtrCopy + 1, cur_ch != '`') {
+        cur_ch = format_ptr[2];
+        while (format_ptr = format_ptr + 1, cur_ch != '`') {
           cur_argument_data[i] = cur_ch;
           i = i + 1;
-          cur_ch = formatBufPtrCopy[2];
+          cur_ch = format_ptr[2];
         }
-        formatBufPtrCopy = formatBufPtrCopy + 1;
+        format_ptr = format_ptr + 1;
         cur_argument_data[i] = 0;
       }
-      goto LAB_00267bfc;
+      goto DIGIT_COMMA_SINGLEQUOTE_TICK_PLUS_MINUS;
     }
-    *bufEnd = cur_ch;
-    bufEnd = bufEnd + 1;
-    if (2 < (byte)*formatBufPtr - 1) goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
-    formatBufPtrCopy = (byte *)(formatBufPtr + 1);
-    formatBufPtr = formatBufPtr + 1;
-    formatBufPtr_ = (byte *)formatBufPtr;
-    if (*formatBufPtrCopy != 0) goto LAB_00267bcc;
+    *output_ptr = cur_ch;
+    output_ptr = output_ptr + 1;
+    if (2 < (byte)*format_ptr2 - 1) goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
+    format_ptr = (byte *)(format_ptr2 + 1);
+    format_ptr2 = format_ptr2 + 1;
+    format_ptr_plus_zero_or_one = (byte *)format_ptr2;
+    if (*format_ptr != 0) goto LAB_00267bcc;
   }
-  *bufEnd = 0;
-  if (destination == (long)(unaff_s7_lo + 4)) {
+  *output_ptr = 0;
+  if (destination == (long)(s7_offset + FIX_SYM_TRUE)) {
     if (DiskBoot == 0) {
-      return (String_type *)0x0;
+      return 0;
     }
   }
   else {
-    if (destination == CONCAT44(unaff_s7_hi,unaff_s7_lo)) {
-      formattedString = (String_type *)make_string_from_c(bufStart);
+                    // Same as destination == s7_offset + FIX_SYM_FALSE
+    if (destination == CONCAT44(unaff_s7_hi,s7_offset)) {
+      formattedString = make_string_from_c(bufStart);
       PrintPending = bufStart;
       *bufStart = '\0';
       return formattedString;
     }
     if (destination != 0) {
-      if ((destination & 7) != 4) {
-        return (String_type *)0x0;
+      if ((destination & OFFSET_MASK) != BASIC_OFFSET) {
+        return 0;
       }
-      piVar4 = (int *)destination;
-      if (piVar4[-1] == *(int *)(unaff_s7_lo + 0xf)) {
-        strncat((char *)(piVar4 + 1),bufStart,(long)*piVar4);
+      outputValuePtr = (int *)destination;
+      if (outputValuePtr[-1] == *(int *)(s7_offset + FIX_SYM_STRING_TYPE_minus_one)) {
+        strncat((char *)(outputValuePtr + 1),bufStart,(long)*outputValuePtr);
       }
       else {
-        if (piVar4[-1] != *(int *)(unaff_s7_lo + 0x8b)) {
-          return (String_type *)0x0;
+        if (outputValuePtr[-1] != *(int *)(s7_offset + FIX_SYM_FILE_STREAM_minus_one)) {
+          return 0;
         }
-        sVar1 = strlen(bufStart);
-        sceWrite(piVar4[3],(const_void *)bufStart,(int)sVar1);
+        outputLength = strlen(bufStart);
+        sceWrite(outputValuePtr[3],(const_void *)bufStart,(int)outputLength);
       }
-      goto LAB_002683dc;
+      goto Return_Zero;
     }
   }
   printf("%s",bufStart);
   fflush(*(FILE **)(_impure_ptr + 8));
-LAB_002683dc:
+Return_Zero:
   PrintPending = bufStart;
   *bufStart = '\0';
-  return (String_type *)0x0;
+  return 0;
 CHECK_NEWLINE_FMT_LAB_00267C50:
-  formatBufLookAhead = (char *)(formatBufPtrCopy + 1);
-  switch(*formatBufLookAhead) {
+  format_ptr_plus_one = (char *)(format_ptr + 1);
+  switch(*format_ptr_plus_one) {
   case '%':
-    *bufEnd = '\n';
-    bufEnd = bufEnd + 1;
-    formatBufPtr = formatBufLookAhead;
-    if (((uVar3 != 0) && (formatBufPtrCopy[2] != 0)) && (i = 0, uVar3 != 0)) {
+    *output_ptr = '\n';
+    output_ptr = output_ptr + 1;
+    format_ptr2 = format_ptr_plus_one;
+    if (((indentation != 0) && (format_ptr[2] != 0)) && (i = 0, indentation != 0)) {
       do {
         i = i + 1;
-        *bufEnd = ' ';
-        bufEnd = bufEnd + 1;
-      } while (i < (int)uVar3);
-      formatBufPtr = (char *)(formatBufPtrCopy + 2);
+        *output_ptr = ' ';
+        output_ptr = output_ptr + 1;
+      } while (i < indentation);
+      format_ptr2 = (char *)(format_ptr + 2);
       goto LOOP_START_LAB_00267b8c;
     }
     goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   default:
-    MsgErr("format: unknown code 0x%02x\n",*formatBufLookAhead);
-    formatBufPtr = (char *)(formatBufPtrCopy + 2);
+    MsgErr("format: unknown code 0x%02x\n",*format_ptr_plus_one);
+    format_ptr2 = (char *)(format_ptr + 2);
     goto LOOP_START_LAB_00267b8c;
   case 'A':
   case 'a':
     nextArg = curArg + 1;
-    *bufEnd = 0;
+    *output_ptr = '\0';
     print_object((u32)*curArg);
     break;
   case 'B':
@@ -170634,20 +170662,20 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
     value = *curArg;
     pad = '0';
     base = 2;
-    goto LAB_00267e40;
+    goto kitoa_AppendValueAsStrToOutputPtr;
   case 'C':
   case 'c':
-    *bufEnd = (byte)*curArg;
+    *output_ptr = (byte)*curArg;
     curArg = curArg + 1;
-    bufEnd = bufEnd + 1;
-    formatBufPtr = formatBufLookAhead;
+    output_ptr = output_ptr + 1;
+    format_ptr2 = format_ptr_plus_one;
     goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   case 'D':
   case 'd':
     value = *curArg;
     pad = ' ';
     base = 10;
-    goto LAB_00267e40;
+    goto kitoa_AppendValueAsStrToOutputPtr;
   case 'E':
   case 'e':
     desired_len = -1;
@@ -170659,9 +170687,9 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
     goto FTOA;
   case 'G':
   case 'g':
-    *bufEnd = 0;
+    *output_ptr = 0;
     nextArg = curArg + 1;
-    strcat(bufEnd,*(char **)curArg);
+    strcat(output_ptr,*(char **)curArg);
     break;
   case 'H':
   case 'J':
@@ -170685,25 +170713,25 @@ CHECK_NEWLINE_FMT_LAB_00267C50:
   case 'w':
   case 'y':
   case 'z':
-    formatBufPtr_ = (byte *)formatBufLookAhead;
-    if (formatBufPtr < formatBufLookAhead) {
+    format_ptr_plus_zero_or_one = (byte *)format_ptr_plus_one;
+    if (format_ptr2 < format_ptr_plus_one) {
       do {
-        *bufEnd = *formatBufPtr;
-        formatBufPtr = formatBufPtr + 1;
-        bufEnd = bufEnd + 1;
-      } while (formatBufPtr < formatBufLookAhead);
-      cur_ch = *formatBufLookAhead;
-      formatBufPtr = formatBufLookAhead;
+        *output_ptr = *format_ptr2;
+        format_ptr2 = format_ptr2 + 1;
+        output_ptr = output_ptr + 1;
+      } while (format_ptr2 < format_ptr_plus_one);
+      cur_ch = *format_ptr_plus_one;
+      format_ptr2 = format_ptr_plus_one;
     }
     else {
 LAB_00267bcc:
-      formatBufPtr = (char *)formatBufPtr_;
-      cur_ch = *formatBufPtr;
+      format_ptr2 = (char *)format_ptr_plus_zero_or_one;
+      cur_ch = *format_ptr2;
     }
-    goto LAB_00267bd0;
+    goto SET_OUTPUT_END_TO_CUR_CH_AND_ADVANCE_FMT_PTR_GOTO_TOP;
   case 'I':
   case 'i':
-    *bufEnd = 0;
+    *output_ptr = 0;
     nextArg = curArg + 1;
     inspect_object((u32)*curArg);
     break;
@@ -170712,19 +170740,19 @@ LAB_00267bcc:
                     // 1 / 4096.0
                     // = 0.00024414062
     argAsFloat = *(float *)curArg * 0.00024414062;
-    goto LAB_00267f30;
+    goto FTOA_desiredLen__1;
   case 'O':
   case 'o':
-    *bufEnd = '~';
-    kitoa(bufEnd + 1,*curArg,10,0,' ',0);
+    *output_ptr = '~';
+    kitoa(output_ptr + 1,*curArg,10,0,' ',0);
     curArg = curArg + 1;
-    bufEnd = strend(bufEnd + 1);
+    output_ptr = strend(output_ptr + 1);
     cur_ch = 'u';
-    formatBufPtr = formatBufLookAhead;
-    goto LAB_00267bd0;
+    format_ptr2 = format_ptr_plus_one;
+    goto SET_OUTPUT_END_TO_CUR_CH_AND_ADVANCE_FMT_PTR_GOTO_TOP;
   case 'P':
   case 'p':
-    *bufEnd = 0;
+    *output_ptr = 0;
     nextArg = curArg + 1;
     print_object((u32)*curArg);
     break;
@@ -170742,66 +170770,67 @@ LAB_00267bcc:
     goto FTOA;
   case 'S':
   case 's':
-    uVar2 = (uint)*curArg;
+    obj = (uint)*curArg;
     nextArg = curArg + 1;
-    *bufEnd = 0;
-    if (((uVar2 & 7) == 4) && (*(int *)(uVar2 - 4) == *(int *)(unaff_s7_lo + 0xf))) {
-      cprintf("%s",uVar2 + 4);
+    *output_ptr = 0;
+    if (((obj & 7) == 4) &&
+       (*(int *)(obj - 4) == *(int *)(s7_offset + FIX_SYM_STRING_TYPE_minus_one))) {
+      cprintf("%s",obj + 4);
     }
     else {
-      print_object(uVar2);
+      print_object(obj);
     }
     break;
   case 'T':
-                    // 1 tab indent
     i = 0;
     do {
       i = i + 1;
-      *bufEnd = '\t';
-      bufEnd = bufEnd + 1;
+      *output_ptr = '\t';
+      output_ptr = output_ptr + 1;
     } while (i < 1);
-    formatBufPtr = (char *)(formatBufPtrCopy + 2);
+    format_ptr2 = (char *)(format_ptr + 2);
     goto LOOP_START_LAB_00267b8c;
   case 'X':
   case 'x':
     pad = '0';
     value = *curArg;
     base = 0x10;
-LAB_00267e40:
-    kitoa(bufEnd,value,base,-1,pad,0);
+kitoa_AppendValueAsStrToOutputPtr:
+    kitoa(output_ptr,value,base,-1,pad,0);
     nextArg = curArg + 1;
     break;
   case 'f':
     argAsFloat = *(float *)curArg;
-LAB_00267f30:
+FTOA_desiredLen__1:
     desired_len = -1;
 FTOA:
-    ftoa(bufEnd,argAsFloat,desired_len,' ',4,0);
+    ftoa(output_ptr,argAsFloat,desired_len,' ',4,0);
     nextArg = curArg + 1;
     break;
   case 't':
-                    // 8 space indent
+                    // t4 (number of spaces) = argument_data[0].[0] if it is not -1, otherwise t4 =
+                    // 8
     i = 0;
     do {
       i = i + 1;
-      *bufEnd = ' ';
-      bufEnd = bufEnd + 1;
+      *output_ptr = ' ';
+      output_ptr = output_ptr + 1;
     } while (i < 8);
-    formatBufPtr = (char *)(formatBufPtrCopy + 2);
+    format_ptr2 = (char *)(format_ptr + 2);
     goto LOOP_START_LAB_00267b8c;
   case '~':
     cur_ch = '~';
-    formatBufPtr = formatBufLookAhead;
-LAB_00267bd0:
-    *bufEnd = cur_ch;
-    bufEnd = bufEnd + 1;
+    format_ptr2 = format_ptr_plus_one;
+SET_OUTPUT_END_TO_CUR_CH_AND_ADVANCE_FMT_PTR_GOTO_TOP:
+    *output_ptr = cur_ch;
+    output_ptr = output_ptr + 1;
     goto LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8;
   }
-  bufEnd = strend(bufEnd);
+  output_ptr = strend(output_ptr);
   curArg = nextArg;
-  formatBufPtr = formatBufLookAhead;
+  format_ptr2 = format_ptr_plus_one;
 LOOP_BOTTOM_incrementFormatBufPtr_LAB_00267bd8:
-  formatBufPtr = formatBufPtr + 1;
+  format_ptr2 = format_ptr2 + 1;
   goto LOOP_START_LAB_00267b8c;
 }
 
@@ -173679,36 +173708,36 @@ u64 sprint(u32 obj)
 u64 print_object(u32 obj)
 
 {
-  u64 uVar1;
-  ulong uVar2;
+  u64 returnValue;
+  ulong obj___OffsetMask;
   
-  uVar1 = (u64)(int)obj;
-  uVar2 = uVar1 & 7;
-  if (uVar2 == 0) {
-    uVar1 = print_binteger((ulong)obj);
-    uVar1 = (u64)(int)uVar1;
+  returnValue = (u64)(int)obj;
+  obj___OffsetMask = returnValue & OFFSET_MASK;
+  if (obj___OffsetMask == BINTEGER_OFFSET) {
+    returnValue = print_binteger((ulong)obj);
+    returnValue = (u64)(int)returnValue;
   }
-  else if (((uVar1 < (ulong)(long)SymbolTable2) || (0x7ffffff < uVar1)) && (0x7bfff < obj - 0x84000)
-          ) {
-    cprintf("#<invalid object #x%x>",uVar1);
+  else if (((returnValue < (ulong)(long)SymbolTable2) || (0x7ffffff < returnValue)) &&
+          (0x7bfff < obj - 0x84000)) {
+    cprintf("#<invalid object #x%x>",returnValue);
   }
   else {
-    if (uVar2 == 2) {
-      uVar1 = print_pair(obj);
-      return uVar1;
+    if (obj___OffsetMask == PAIR_OFFSET) {
+      returnValue = print_pair(obj);
+      return returnValue;
     }
-    if ((((uVar1 & 1) != 0) && ((ulong)(long)SymbolTable2 <= uVar1)) &&
-       (uVar1 < (ulong)(long)LastSymbol)) {
-      uVar1 = print_symbol(obj);
-      return uVar1;
+    if ((((returnValue & 1) != SYMBOL_OFFSET) && ((ulong)(long)SymbolTable2 <= returnValue)) &&
+       (returnValue < (ulong)(long)LastSymbol)) {
+      returnValue = print_symbol(obj);
+      return returnValue;
     }
-    if (uVar2 == 4) {
-      uVar1 = call_method_of_type(obj,*(Type **)(obj - 4),2);
-      return uVar1;
+    if (obj___OffsetMask == BASIC_OFFSET) {
+      returnValue = call_method_of_type(obj,*(Type **)(obj - 4),GOAL_PRINT_METHOD);
+      return returnValue;
     }
-    cprintf("#<unknown type %d @ #x%x>",uVar2,uVar1);
+    cprintf("#<unknown type %d @ #x%x>",obj___OffsetMask,returnValue);
   }
-  return uVar1;
+  return returnValue;
 }
 
 
@@ -173753,27 +173782,27 @@ u64 print_pair(u32 obj)
 {
   uint uVar1;
   char *format;
-  ulong uVar2;
+  ulong copy;
   u32 toPrint;
   ulong cdr;
   int unaff_s7_lo;
   undefined4 unaff_s7_hi;
   
-  uVar2 = (ulong)(int)obj;
-  if (uVar2 == (long)(unaff_s7_lo + -7)) {
+  copy = (ulong)(int)obj;
+  if (copy == (long)(unaff_s7_lo + S7_OFF_FIX_SYM_EMPTY_PAIR)) {
     format = "()";
   }
   else {
     if (((((long)*(int *)(CollapseQuote + -1) != CONCAT44(unaff_s7_hi,unaff_s7_lo)) &&
-         ((uVar2 & 7) == 2)) && (*(int *)(obj - 2) == unaff_s7_lo + 0xe8)) &&
+         ((copy & 7) == 2)) && (*(int *)(obj - 2) == unaff_s7_lo + FIX_SYM_QUOTE)) &&
        ((uVar1 = *(uint *)(obj + 2), (uVar1 & 7) == 2 &&
-        ((long)*(int *)(uVar1 + 2) == (long)(unaff_s7_lo + -7))))) {
+        ((long)*(int *)(uVar1 + 2) == (long)(unaff_s7_lo + S7_OFF_FIX_SYM_EMPTY_PAIR))))) {
       cprintf("\'");
       print_object(*(u32 *)(uVar1 - 2));
-      return uVar2;
+      return copy;
     }
     cprintf("(");
-    cdr = uVar2;
+    cdr = copy;
     while (toPrint = (u32)cdr, (cdr & 7) == 2) {
       print_object(*(u32 *)(toPrint - 2));
       cdr = (ulong)*(int *)(toPrint + 2);
@@ -173786,7 +173815,7 @@ LAB_0026ccc0:
     format = ")";
   }
   cprintf(format);
-  return uVar2;
+  return copy;
 }
 
 
@@ -173839,27 +173868,32 @@ u64 print_float(u32 f)
 
 
 
+// uVar1, uVar2 are copies of obj
+
 u64 print_symbol(u32 obj)
 
 {
   char *format;
   ulong uVar1;
+  ulong uVar2;
   int unaff_s7_lo;
   
   uVar1 = (ulong)(int)obj;
+                    // (uVar1 ^ 1) & 1 is the same as (uVar1 & 1) == 0
+  uVar2 = uVar1;
   if (((((ulong)(long)SymbolTable2 <= uVar1) && (uVar1 < 0x8000000)) || (obj - 0x84000 < 0x7c000))
      && (((uVar1 ^ 1) & 1) == 0)) {
     format = "#<invalid symbol #x%x>";
-    if (uVar1 < (ulong)(long)SymbolTable2) goto override_prt_26cec0_b5e6c2dd;
+    if (uVar1 < (ulong)(long)SymbolTable2) goto cprint_format_and_return;
     if (uVar1 < (ulong)(long)LastSymbol) {
       format = "%s";
-      obj = *(int *)((obj - unaff_s7_lo) + SymbolString) + 4;
-      goto override_prt_26cec0_b5e6c2dd;
+      uVar2 = (ulong)(*(int *)((obj - unaff_s7_lo) + SymbolString) + 4);
+      goto cprint_format_and_return;
     }
   }
   format = "#<invalid symbol #x%x>";
-override_prt_26cec0_b5e6c2dd:
-  cprintf(format,(char *)obj);
+cprint_format_and_return:
+  cprintf(format,uVar2);
   return uVar1;
 }
 
@@ -173992,36 +174026,36 @@ u64 copy_basic(u32 obj,u32 heap,u32 unused,u32 pp)
 u64 inspect_object(u32 obj)
 
 {
-  u64 uVar1;
-  ulong uVar2;
+  u64 returnValue;
+  ulong obj___OFFSET_MASK;
   
-  uVar1 = (u64)(int)obj;
-  uVar2 = uVar1 & 7;
-  if (uVar2 == 0) {
-    uVar1 = inspect_binteger((ulong)obj);
-    uVar1 = (u64)(int)uVar1;
+  returnValue = (u64)(int)obj;
+  obj___OFFSET_MASK = returnValue & OFFSET_MASK;
+  if (obj___OFFSET_MASK == 0) {
+    returnValue = inspect_binteger((ulong)obj);
+    returnValue = (u64)(int)returnValue;
   }
-  else if (((uVar1 < (ulong)(long)SymbolTable2) || (0x7ffffff < uVar1)) && (0x7bfff < obj - 0x84000)
-          ) {
-    cprintf("#<invalid object #x%x>\n",uVar1);
+  else if (((returnValue < (ulong)(long)SymbolTable2) || (0x7ffffff < returnValue)) &&
+          (0x7bfff < obj - 0x84000)) {
+    cprintf("#<invalid object #x%x>\n",returnValue);
   }
   else {
-    if (uVar2 == 2) {
-      uVar1 = inspect_pair(obj);
-      return uVar1;
+    if (obj___OFFSET_MASK == PAIR_OFFSET) {
+      returnValue = inspect_pair(obj);
+      return returnValue;
     }
-    if ((((uVar1 & 1) != 0) && ((ulong)(long)SymbolTable2 <= uVar1)) &&
-       (uVar1 < (ulong)(long)LastSymbol)) {
-      uVar1 = inspect_symbol(obj);
-      return uVar1;
+    if ((((returnValue & 1) != 0) && ((ulong)(long)SymbolTable2 <= returnValue)) &&
+       (returnValue < (ulong)(long)LastSymbol)) {
+      returnValue = inspect_symbol(obj);
+      return returnValue;
     }
-    if (uVar2 == 4) {
-      uVar1 = call_method_of_type(obj,*(Type **)(obj - 4),3);
-      return uVar1;
+    if (obj___OFFSET_MASK == BASIC_OFFSET) {
+      returnValue = call_method_of_type(obj,*(Type **)(obj - 4),GOAL_INSPECT_METHOD);
+      return returnValue;
     }
-    cprintf("#<unknown type %d @ #x%x>",uVar2,uVar1);
+    cprintf("#<unknown type %d @ #x%x>",obj___OFFSET_MASK,returnValue);
   }
-  return uVar1;
+  return returnValue;
 }
 
 
@@ -174100,6 +174134,7 @@ u64 inspect_symbol(u32 obj)
   int unaff_s7_lo;
   
   uVar1 = (ulong)(int)obj;
+                    // (uVar1 ^ 1) & 1 is the same as (uVar & 1) != 1
   if ((((uVar1 < (ulong)(long)SymbolTable2) || (0x7ffffff < uVar1)) && (0x7bfff < obj - 0x84000)) ||
      (((((uVar1 ^ 1) & 1) != 0 || (uVar1 < (ulong)(long)SymbolTable2)) ||
       ((ulong)(long)LastSymbol <= uVar1)))) {
@@ -175241,7 +175276,7 @@ void jakx_finish(link_control *this,bool jump_from_c_to_goal)
     m_entry = (code *)this->m_entry;
     if (m_entry != (code *)0x0) {
       if ((*(int *)(m_entry + -4) == *(int *)(unaff_s7_lo + 7)) && ((this->m_flags & 5) != 0)) {
-        if ((this->m_flags & 4) == 0) {
+        if ((this->m_flags & LINK_FLAG_EXECUTE) == 0) {
           m_entry = *(code **)(unaff_s7_lo + 0x93);
         }
         else {
@@ -175249,7 +175284,7 @@ void jakx_finish(link_control *this,bool jump_from_c_to_goal)
           m_entry = *(code **)(unaff_s7_lo + 0x93);
         }
         (*m_entry)();
-        if ((this->m_flags & 1) != 0) {
+        if ((this->m_flags & LINK_FLAG_OUTPUT_LOAD) != 0) {
           output_segment_load(m_link_hdr->name,(ObjectFileHeader *)m_link_hdr->length_to_get_to_link
                               ,this->m_flags);
         }
